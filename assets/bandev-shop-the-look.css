@@ -1,0 +1,382 @@
+/* ==========================================================================
+   bandev-shop-the-look — Shop the Look with product pins
+   BEM prefix: bandev-shop
+   ========================================================================== */
+
+.bandev-shop {
+  position: relative;
+  display: block;
+  width: 100%;
+}
+
+.bandev-shop__container {
+  display: grid;
+  gap: var(--fluid-16-32, 24px);
+  grid-template-columns: 1fr;
+  align-items: start;
+}
+
+@media (min-width: 1024px) {
+  .bandev-shop--layout-right .bandev-shop__container {
+    grid-template-columns: 1fr minmax(280px, 360px);
+  }
+
+  .bandev-shop--layout-left .bandev-shop__container {
+    grid-template-columns: minmax(280px, 360px) 1fr;
+  }
+
+  .bandev-shop--layout-left .bandev-shop__media-wrapper { order: 2; }
+  .bandev-shop--layout-left .bandev-shop__products { order: 1; }
+}
+
+.bandev-shop--layout-bottom .bandev-shop__container {
+  grid-template-columns: 1fr;
+}
+
+/* Header --------------------------------------------------------------------- */
+.bandev-shop__header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fluid-8-12, 12px);
+  margin-bottom: var(--fluid-16-32, 24px);
+  text-align: center;
+}
+
+.bandev-shop__header--left { text-align: left; }
+.bandev-shop__header--right { text-align: right; }
+
+.bandev-shop__eyebrow {
+  font-family: var(--font-subheading--family);
+  font-size: var(--fluid-11-14, 13px);
+  letter-spacing: var(--letter-spacing-md, 0.13em);
+  text-transform: uppercase;
+  color: var(--color-foreground);
+  opacity: 0.85;
+  margin: 0;
+}
+
+.bandev-shop__title {
+  font-family: var(--font-heading--family);
+  font-size: var(--fluid-32-48, 36px);
+  line-height: 1.1;
+  margin: 0;
+  color: var(--color-foreground-heading);
+}
+
+.bandev-shop__description {
+  font-family: var(--font-body--family);
+  font-size: var(--fluid-14-16, 15px);
+  line-height: 1.5;
+  margin: 0;
+  color: var(--color-foreground);
+  opacity: 0.92;
+  max-width: 60ch;
+}
+
+.bandev-shop__header--center .bandev-shop__description { margin-inline: auto; }
+.bandev-shop__header--right .bandev-shop__description { margin-inline-start: auto; }
+
+/* Media ---------------------------------------------------------------------- */
+.bandev-shop__media-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.bandev-shop__media {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border-radius: var(--radius-md, 16px);
+  background: var(--color-hover-bg, #ECE8E1);
+}
+
+.bandev-shop__media--ratio-16-9  { aspect-ratio: 16 / 9; }
+.bandev-shop__media--ratio-4-3   { aspect-ratio: 4 / 3; }
+.bandev-shop__media--ratio-1-1   { aspect-ratio: 1 / 1; }
+.bandev-shop__media--ratio-3-4   { aspect-ratio: 3 / 4; }
+.bandev-shop__media--ratio-21-9  { aspect-ratio: 21 / 9; }
+
+.bandev-shop__media img,
+.bandev-shop__media svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center center;
+}
+
+/* Pins ---------------------------------------------------------------------- */
+.bandev-shop__pin {
+  --pin-size: 28px;
+  position: absolute;
+  top: var(--pin-y, 50%);
+  left: var(--pin-x, 50%);
+  transform: translate(-50%, -50%);
+  width: var(--pin-size);
+  height: var(--pin-size);
+  border-radius: 999px;
+  border: none;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.95);
+  color: #1C1C1E;
+  cursor: pointer;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.18);
+  transition: transform 0.3s ease, background 0.3s ease;
+}
+
+.bandev-shop__pin::before {
+  content: '';
+  position: absolute;
+  inset: -8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.4);
+  opacity: 0;
+  z-index: -1;
+  animation: bandev-pin-pulse 2.4s ease-out infinite;
+}
+
+.bandev-shop__pin:hover,
+.bandev-shop__pin[aria-expanded='true'],
+.bandev-shop__pin.is-active {
+  transform: translate(-50%, -50%) scale(1.15);
+  background: var(--color-accent, #C6A96B);
+  color: #FFFFFF;
+}
+
+.bandev-shop__pin-inner {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: currentColor;
+}
+
+@keyframes bandev-pin-pulse {
+  0%   { transform: scale(0.8); opacity: 0.6; }
+  70%  { transform: scale(1.6); opacity: 0; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bandev-shop__pin::before { animation: none; }
+}
+
+/* Pin popover --------------------------------------------------------------- */
+.bandev-shop__popover {
+  position: absolute;
+  top: calc(var(--pin-y, 50%) + 24px);
+  left: var(--pin-x, 50%);
+  transform: translateX(-50%);
+  z-index: 5;
+  width: min(280px, 80vw);
+  background: var(--color-background, #FFFFFF);
+  color: var(--color-foreground);
+  border-radius: var(--radius-md, 16px);
+  box-shadow: var(--shadow-soft, 0 10px 30px rgba(0, 0, 0, 0.15));
+  padding: 12px;
+  display: none;
+  pointer-events: auto;
+}
+
+.bandev-shop__popover[aria-hidden='false'] {
+  display: block;
+}
+
+/* Auto-flip popover when pin is in bottom half */
+.bandev-shop__pin-wrapper--bottom .bandev-shop__popover {
+  top: auto;
+  bottom: calc(100% - var(--pin-y, 50%) + 24px);
+}
+
+.bandev-shop__popover-inner {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.bandev-shop__popover-image {
+  flex: 0 0 64px;
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-sm, 12px);
+  overflow: hidden;
+  background: var(--color-hover-bg, #ECE8E1);
+}
+
+.bandev-shop__popover-image img,
+.bandev-shop__popover-image svg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.bandev-shop__popover-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.bandev-shop__popover-title {
+  font-family: var(--font-body--family);
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.2;
+  margin: 0;
+  color: var(--color-foreground-heading);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bandev-shop__popover-price {
+  font-family: var(--font-body--family);
+  font-size: 0.8125rem;
+  color: var(--color-foreground);
+  opacity: 0.85;
+  margin: 0;
+}
+
+.bandev-shop__popover-link {
+  display: inline-block;
+  margin-top: 6px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-accent, #C6A96B);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.bandev-shop__popover-link:hover {
+  color: var(--color-accent-hover, #B89655);
+}
+
+/* Products list ------------------------------------------------------------- */
+.bandev-shop__products {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fluid-8-12, 12px);
+  max-height: var(--fluid-420-420, 420px);
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.bandev-shop__products::-webkit-scrollbar { width: 6px; }
+.bandev-shop__products::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.18);
+  border-radius: 999px;
+}
+
+.bandev-shop__product {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px;
+  border-radius: var(--radius-sm, 12px);
+  background: var(--color-background, #FFFFFF);
+  border: 1px solid var(--color-border, #E5E5E5);
+  text-decoration: none;
+  color: var(--color-foreground);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+}
+
+.bandev-shop__product:hover,
+.bandev-shop__product.is-active {
+  border-color: var(--color-accent, #C6A96B);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-soft, 0 6px 20px rgba(0, 0, 0, 0.08));
+}
+
+.bandev-shop__product-number {
+  flex: 0 0 24px;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  background: var(--color-accent, #C6A96B);
+  color: #FFFFFF;
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bandev-shop__product-image {
+  flex: 0 0 56px;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-sm, 12px);
+  overflow: hidden;
+  background: var(--color-hover-bg, #ECE8E1);
+}
+
+.bandev-shop__product-image img,
+.bandev-shop__product-image svg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.bandev-shop__product-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.bandev-shop__product-title {
+  font-family: var(--font-body--family);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.2;
+  margin: 0;
+  color: var(--color-foreground-heading);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bandev-shop__product-price {
+  font-family: var(--font-body--family);
+  font-size: 0.8125rem;
+  color: var(--color-foreground);
+  opacity: 0.85;
+  margin: 0;
+}
+
+.bandev-shop__product-cta {
+  flex: 0 0 auto;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-accent, #C6A96B);
+}
+
+/* Mobile responsive --------------------------------------------------------- */
+@media (max-width: 1023px) {
+  .bandev-shop__products {
+    max-height: none;
+    overflow: visible;
+    padding-right: 0;
+  }
+
+  .bandev-shop__pin { --pin-size: 24px; }
+
+  .bandev-shop__popover {
+    width: min(240px, 70vw);
+  }
+}
+
+@media (min-width: 1440px) {
+  .bandev-shop__pin { --pin-size: 32px; }
+}

@@ -1,0 +1,294 @@
+{% liquid
+  assign s = section.settings
+  assign block_count = section.blocks.size
+
+  assign layout_class = 'bandev-shop bandev-shop--layout-' | append: s.layout
+  assign header_class = 'bandev-shop__header bandev-shop__header--' | append: s.header_alignment
+  assign media_class = 'bandev-shop__media bandev-shop__media--ratio-' | append: s.image_ratio | replace: '/', '-'
+%}
+
+{{ 'bandev-shop-the-look.css' | asset_url | stylesheet_tag: preload: true }}
+<script src="{{ 'bandev-shop-the-look.js' | asset_url }}" defer="defer"></script>
+
+<div class="section-background color-{{ s.color_scheme }}"></div>
+<div
+  class="bandev-shop-section section spacing-style section--{{ s.section_width }} color-{{ s.color_scheme }}"
+  style="{% render 'spacing-padding', settings: s %}"
+>
+  <bandev-shop-the-look class="{{ layout_class }}">
+    {%- if s.eyebrow != blank or s.title != blank or s.description != blank -%}
+      <div class="{{ header_class }}">
+        {%- if s.eyebrow != blank -%}
+          <p class="bandev-shop__eyebrow">{{ s.eyebrow | escape }}</p>
+        {%- endif -%}
+        {%- if s.title != blank -%}
+          <{{ s.heading_tag }} class="bandev-shop__title">{{ s.title | escape }}</{{ s.heading_tag }}>
+        {%- endif -%}
+        {%- if s.description != blank -%}
+          <p class="bandev-shop__description">{{ s.description }}</p>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+
+    <div class="bandev-shop__container">
+      <div class="bandev-shop__media-wrapper">
+        <div class="{{ media_class }}">
+          {%- if s.image != blank -%}
+            {{
+              s.image
+              | image_url: width: 2000
+              | image_tag:
+                widths: '480, 768, 1024, 1440, 1920, 2000',
+                sizes: '(min-width: 1024px) 70vw, 100vw',
+                loading: 'lazy',
+                alt: s.image.alt | default: s.title
+            }}
+          {%- else -%}
+            {{ 'lifestyle-1' | placeholder_svg_tag: 'placeholder-svg' }}
+          {%- endif -%}
+
+          {% content_for 'blocks' %}
+        </div>
+      </div>
+
+      {%- if block_count > 0 -%}
+        <div class="bandev-shop__products">
+          {%- for block in section.blocks -%}
+            {%- assign p = block.settings.product -%}
+            {%- assign idx = forloop.index -%}
+            {%- if p != blank -%}
+              <a
+                href="{{ p.url }}"
+                class="bandev-shop__product"
+                data-product-card
+                data-product-id="{{ block.id }}"
+              >
+                {%- if s.show_numbers -%}
+                  <span class="bandev-shop__product-number" aria-hidden="true">{{ idx }}</span>
+                {%- endif -%}
+                <div class="bandev-shop__product-image">
+                  {%- if p.featured_image -%}
+                    {{
+                      p.featured_image
+                      | image_url: width: 200
+                      | image_tag:
+                        widths: '120, 200',
+                        sizes: '56px',
+                        loading: 'lazy',
+                        alt: p.title
+                    }}
+                  {%- else -%}
+                    {{ 'product-1' | placeholder_svg_tag: 'placeholder-svg' }}
+                  {%- endif -%}
+                </div>
+                <div class="bandev-shop__product-info">
+                  <p class="bandev-shop__product-title">{{ p.title }}</p>
+                  <p class="bandev-shop__product-price">{{ p.price | money }}</p>
+                </div>
+                {%- if s.show_cta -%}
+                  <span class="bandev-shop__product-cta">{{ s.cta_label | default: 'Shop' }}</span>
+                {%- endif -%}
+              </a>
+            {%- else -%}
+              <div class="bandev-shop__product" data-product-card data-product-id="{{ block.id }}">
+                {%- if s.show_numbers -%}
+                  <span class="bandev-shop__product-number" aria-hidden="true">{{ idx }}</span>
+                {%- endif -%}
+                <div class="bandev-shop__product-image">
+                  {{ 'product-1' | placeholder_svg_tag: 'placeholder-svg' }}
+                </div>
+                <div class="bandev-shop__product-info">
+                  <p class="bandev-shop__product-title">{{ block.settings.fallback_label | default: 'Pick a product' }}</p>
+                </div>
+              </div>
+            {%- endif -%}
+          {%- endfor -%}
+        </div>
+      {%- endif -%}
+    </div>
+  </bandev-shop-the-look>
+</div>
+
+{% schema %}
+{
+  "name": "Bandev shop the look",
+  "class": "bandev-shop-wrapper",
+  "tag": "section",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "blocks": [
+    { "type": "_bandev-shop-pin", "name": "Pin" }
+  ],
+  "max_blocks": 12,
+  "settings": [
+    {
+      "type": "header",
+      "content": "Image"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Lifestyle image"
+    },
+    {
+      "type": "select",
+      "id": "image_ratio",
+      "label": "Image aspect ratio",
+      "options": [
+        { "value": "16/9",  "label": "16:9 (wide)" },
+        { "value": "21/9",  "label": "21:9 (cinematic)" },
+        { "value": "4/3",   "label": "4:3 (photo)" },
+        { "value": "1/1",   "label": "1:1 (square)" },
+        { "value": "3/4",   "label": "3:4 (portrait)" }
+      ],
+      "default": "4/3"
+    },
+    {
+      "type": "header",
+      "content": "Header"
+    },
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow",
+      "default": "Shop the look"
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Title",
+      "default": "Get inspired"
+    },
+    {
+      "type": "select",
+      "id": "heading_tag",
+      "label": "Title tag",
+      "options": [
+        { "value": "h2", "label": "H2" },
+        { "value": "h3", "label": "H3" }
+      ],
+      "default": "h2"
+    },
+    {
+      "type": "richtext",
+      "id": "description",
+      "label": "Description",
+      "default": "<p>Click on each pin to discover the products featured in this look.</p>"
+    },
+    {
+      "type": "select",
+      "id": "header_alignment",
+      "label": "Header alignment",
+      "options": [
+        { "value": "left",   "label": "Left" },
+        { "value": "center", "label": "Center" },
+        { "value": "right",  "label": "Right" }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "Section width",
+      "options": [
+        { "value": "page-width", "label": "Page width" },
+        { "value": "full-width", "label": "Full width" }
+      ],
+      "default": "page-width"
+    },
+    {
+      "type": "select",
+      "id": "layout",
+      "label": "Products list position (desktop)",
+      "options": [
+        { "value": "right",  "label": "Right of image" },
+        { "value": "left",   "label": "Left of image" },
+        { "value": "bottom", "label": "Below image" }
+      ],
+      "default": "right"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "header",
+      "content": "Products list"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_numbers",
+      "label": "Show pin numbers",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_cta",
+      "label": "Show shop label",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "cta_label",
+      "label": "Shop label",
+      "default": "Shop",
+      "visible_if": "{{ section.settings.show_cta == true }}"
+    },
+    {
+      "type": "header",
+      "content": "Padding"
+    },
+    {
+      "type": "range",
+      "id": "padding-block-start",
+      "label": "Top padding",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "default": 60
+    },
+    {
+      "type": "range",
+      "id": "padding-block-end",
+      "label": "Bottom padding",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "default": 60
+    }
+  ],
+  "presets": [
+    {
+      "name": "Bandev shop the look",
+      "category": "Banners",
+      "settings": {
+        "image_ratio": "4/3",
+        "eyebrow": "Shop the look",
+        "title": "Get inspired",
+        "heading_tag": "h2",
+        "header_alignment": "center",
+        "section_width": "page-width",
+        "layout": "right",
+        "color_scheme": "scheme-1",
+        "show_numbers": true,
+        "show_cta": true
+      },
+      "blocks": {
+        "pin_1": { "type": "_bandev-shop-pin" },
+        "pin_2": { "type": "_bandev-shop-pin" },
+        "pin_3": { "type": "_bandev-shop-pin" }
+      },
+      "block_order": ["pin_1", "pin_2", "pin_3"]
+    }
+  ]
+}
+{% endschema %}

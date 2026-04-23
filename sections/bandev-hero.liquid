@@ -1,0 +1,213 @@
+{% liquid
+  assign s = section.settings
+  assign block_count = section.blocks.size
+  assign show_controls = false
+  if block_count > 1 and s.show_navigation
+    assign show_controls = true
+  endif
+
+  assign hero_class = 'bandev-hero bandev-hero--height-' | append: s.height
+  if s.rounded
+    assign hero_class = hero_class | append: ' bandev-hero--rounded'
+  endif
+
+  assign width_class = 'section--' | append: s.section_width
+%}
+
+{{ 'bandev-hero.css' | asset_url | stylesheet_tag: preload: true }}
+<script src="{{ 'bandev-hero.js' | asset_url }}" defer="defer"></script>
+
+<div class="section-background color-{{ s.color_scheme }}"></div>
+<div
+  class="bandev-hero-section section spacing-style {{ width_class }} color-{{ s.color_scheme }} disable-section-top-offset"
+  style="{% render 'spacing-padding', settings: s %}"
+>
+  <bandev-hero
+    class="{{ hero_class }}"
+    {% if s.autoplay and block_count > 1 %}
+      data-autoplay
+      data-speed="{{ s.autoplay_speed | times: 1000 }}"
+    {% endif %}
+    data-loop="true"
+  >
+    <div class="bandev-hero__inner">
+      <div class="bandev-hero__slides">
+        {% content_for 'blocks' %}
+      </div>
+
+      {%- if show_controls -%}
+        <div class="bandev-hero__controls">
+          {%- if s.show_arrows -%}
+            <button type="button" class="bandev-hero__arrow bandev-hero__arrow--prev" data-bandev-prev aria-label="Previous slide">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <polyline points="15 18 9 12 15 6"></polyline>
+              </svg>
+            </button>
+          {%- endif -%}
+
+          {%- if s.show_dots -%}
+            <div class="bandev-hero__dots" role="tablist">
+              {%- for block in section.blocks -%}
+                {%- assign idx = forloop.index0 -%}
+                <button
+                  type="button"
+                  class="bandev-hero__dot"
+                  data-index="{{ idx }}"
+                  aria-current="{% if idx == 0 %}true{% else %}false{% endif %}"
+                  aria-label="Go to slide {{ forloop.index }}"
+                ></button>
+              {%- endfor -%}
+            </div>
+          {%- endif -%}
+
+          {%- if s.show_arrows -%}
+            <button type="button" class="bandev-hero__arrow bandev-hero__arrow--next" data-bandev-next aria-label="Next slide">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <polyline points="9 18 15 12 9 6"></polyline>
+              </svg>
+            </button>
+          {%- endif -%}
+        </div>
+      {%- endif -%}
+    </div>
+  </bandev-hero>
+</div>
+
+{% schema %}
+{
+  "name": "Bandev hero",
+  "class": "bandev-hero-wrapper",
+  "tag": "section",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "blocks": [
+    { "type": "_bandev-hero-slide", "name": "Slide" }
+  ],
+  "settings": [
+    {
+      "type": "header",
+      "content": "Layout"
+    },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "Section width",
+      "options": [
+        { "value": "page-width", "label": "Page width" },
+        { "value": "full-width", "label": "Full width" }
+      ],
+      "default": "full-width"
+    },
+    {
+      "type": "select",
+      "id": "height",
+      "label": "Height",
+      "options": [
+        { "value": "small", "label": "Small (360px)" },
+        { "value": "medium", "label": "Medium (480px)" },
+        { "value": "large", "label": "Large (640px)" },
+        { "value": "full", "label": "Full screen (100vh)" }
+      ],
+      "default": "large"
+    },
+    {
+      "type": "checkbox",
+      "id": "rounded",
+      "label": "Rounded corners",
+      "default": false
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Section color scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "header",
+      "content": "Navigation"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_navigation",
+      "label": "Show navigation controls",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_arrows",
+      "label": "Show arrows",
+      "default": true,
+      "visible_if": "{{ section.settings.show_navigation }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_dots",
+      "label": "Show dots",
+      "default": true,
+      "visible_if": "{{ section.settings.show_navigation }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "autoplay",
+      "label": "Auto-rotate slides",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "autoplay_speed",
+      "label": "Auto-rotate speed",
+      "min": 3,
+      "max": 10,
+      "step": 1,
+      "unit": "s",
+      "default": 5,
+      "visible_if": "{{ section.settings.autoplay }}"
+    },
+    {
+      "type": "header",
+      "content": "Padding"
+    },
+    {
+      "type": "range",
+      "id": "padding-block-start",
+      "label": "Top padding",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding-block-end",
+      "label": "Bottom padding",
+      "min": 0,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "default": 0
+    }
+  ],
+  "presets": [
+    {
+      "name": "Bandev hero",
+      "category": "Banners",
+      "settings": {
+        "section_width": "full-width",
+        "height": "large",
+        "color_scheme": "scheme-1",
+        "show_navigation": true,
+        "show_arrows": true,
+        "show_dots": true,
+        "autoplay": false
+      },
+      "blocks": {
+        "slide_1": { "type": "_bandev-hero-slide" },
+        "slide_2": { "type": "_bandev-hero-slide" }
+      },
+      "block_order": ["slide_1", "slide_2"]
+    }
+  ]
+}
+{% endschema %}
