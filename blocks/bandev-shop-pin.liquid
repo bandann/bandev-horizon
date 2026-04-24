@@ -1,0 +1,128 @@
+{% liquid
+  assign s = block.settings
+  assign product = s.product
+  assign block_index = section.blocks | find_index: 'id', block.id
+  assign pin_id = block.id
+  assign pin_number = block_index | plus: 1
+
+  assign pin_y = s.position_y | default: 50
+  assign is_bottom = false
+  if pin_y > 60
+    assign is_bottom = true
+  endif
+
+  assign wrapper_class = 'bandev-shop__pin-wrapper'
+  if is_bottom
+    assign wrapper_class = wrapper_class | append: ' bandev-shop__pin-wrapper--bottom'
+  endif
+%}
+
+{% capture pin_style %}--pin-x: {{ s.position_x | default: 50 }}%; --pin-y: {{ pin_y }}%;{% endcapture %}
+
+<div
+  class="{{ wrapper_class }}"
+  data-pin-wrapper
+  data-pin-id="{{ pin_id }}"
+  style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;"
+  {{ block.shopify_attributes }}
+>
+  <button
+    type="button"
+    class="bandev-shop__pin"
+    data-pin
+    aria-label="{% if product != blank %}{{ product.title | escape }}{% else %}Product pin {{ pin_number }}{% endif %}"
+    aria-expanded="false"
+    style="{{ pin_style }} pointer-events: auto;"
+  >
+    <span class="bandev-shop__pin-inner" aria-hidden="true"></span>
+  </button>
+
+  <div
+    class="bandev-shop__popover"
+    data-popover
+    aria-hidden="true"
+    style="{{ pin_style }}"
+  >
+    <div class="bandev-shop__popover-inner">
+      <div class="bandev-shop__popover-image">
+        {%- if product != blank and product.featured_image -%}
+          {{
+            product.featured_image
+            | image_url: width: 200
+            | image_tag:
+              widths: '120, 200',
+              sizes: '64px',
+              loading: 'lazy',
+              alt: product.title
+          }}
+        {%- else -%}
+          {{ 'product-1' | placeholder_svg_tag: 'placeholder-svg' }}
+        {%- endif -%}
+      </div>
+      <div class="bandev-shop__popover-info">
+        <p class="bandev-shop__popover-title">
+          {%- if product != blank -%}
+            {{ product.title }}
+          {%- else -%}
+            {{ s.fallback_label | default: 'Pick a product' }}
+          {%- endif -%}
+        </p>
+        {%- if product != blank -%}
+          <p class="bandev-shop__popover-price">{{ product.price | money }}</p>
+          <a class="bandev-shop__popover-link" href="{{ product.url }}">View product</a>
+        {%- endif -%}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Bandev shop pin",
+  "settings": [
+    {
+      "type": "product",
+      "id": "product",
+      "label": "t:names.product"
+    },
+    {
+      "type": "header",
+      "content": "Pin position"
+    },
+    {
+      "type": "paragraph",
+      "content": "Position is measured from the top-left of the image, in percentage."
+    },
+    {
+      "type": "range",
+      "id": "position_x",
+      "label": "Horizontal position (X)",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "default": 50
+    },
+    {
+      "type": "range",
+      "id": "position_y",
+      "label": "Vertical position (Y)",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "default": 50
+    },
+    {
+      "type": "header",
+      "content": "Fallback"
+    },
+    {
+      "type": "text",
+      "id": "fallback_label",
+      "label": "t:settings.label",
+      "default": "Pick a product"
+    }
+  ]
+}
+{% endschema %}

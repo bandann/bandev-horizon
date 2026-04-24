@@ -43,20 +43,88 @@
       {% content_for 'block', type: 'text', id: 'heading' %}
     </div>
 
-    <div class="section-product-hotspots__content">
-      {% if section.settings.toggle_overlay %}
-        {% render 'overlay', settings: section.settings, layer: 'var(--layer-flat)' %}
-      {% endif %}
+    <div class="section-product-hotspots__layout section-product-hotspots__layout--{{ section.settings.sidebar_position | default: 'right' }}">
+      <div class="section-product-hotspots__content">
+        {% if section.settings.toggle_overlay %}
+          {% render 'overlay', settings: section.settings, layer: 'var(--layer-flat)' %}
+        {% endif %}
 
-      {% if section.settings.image != blank %}
-        {% render 'image', image: section.settings.image, class: 'hotspots__background-image' %}
-      {% else %}
-        {{ 'hero-apparel-1' | placeholder_svg_tag: 'hotspots__background-image' }}
-      {% endif %}
+        {% if section.settings.image != blank %}
+          {% render 'image', image: section.settings.image, class: 'hotspots__background-image' %}
+        {% else %}
+          {{ 'hero-apparel-1' | placeholder_svg_tag: 'hotspots__background-image' }}
+        {% endif %}
 
-      <div class="hotspots-container">
-        {% content_for 'blocks' %}
+        <div class="hotspots-container">
+          {% content_for 'blocks' %}
+        </div>
       </div>
+
+      {%- if section.settings.show_sidebar -%}
+        {%- assign hotspot_blocks = section.blocks | where: 'type', '_hotspot-product' -%}
+        {%- if hotspot_blocks.size > 0 -%}
+          <aside
+            class="section-product-hotspots__sidebar"
+            style="--sidebar-columns: {{ section.settings.sidebar_columns | default: 2 }}; --sidebar-gap: {{ section.settings.sidebar_gap | default: 16 }}px;"
+          >
+            <div class="section-product-hotspots__sidebar-grid">
+              {%- for hotspot_block in hotspot_blocks -%}
+                {%- assign hp = hotspot_block.settings.product -%}
+                {%- assign idx = forloop.index -%}
+                {%- if hp != blank -%}
+                  <a
+                    href="{{ hp.url }}"
+                    class="hotspots-card"
+                    data-product-id="{{ hotspot_block.id }}"
+                  >
+                    {%- if section.settings.sidebar_show_numbers -%}
+                      <span class="hotspots-card__number" aria-hidden="true">{{ idx }}</span>
+                    {%- endif -%}
+                    <div class="hotspots-card__image">
+                      {%- if hp.featured_image -%}
+                        {{
+                          hp.featured_image
+                          | image_url: width: 400
+                          | image_tag:
+                            widths: '200, 300, 400',
+                            sizes: '(min-width: 1024px) 180px, 50vw',
+                            loading: 'lazy',
+                            alt: hp.title
+                        }}
+                      {%- else -%}
+                        {{ 'product-1' | placeholder_svg_tag: 'placeholder-svg' }}
+                      {%- endif -%}
+                    </div>
+                    <div class="hotspots-card__info">
+                      <p class="hotspots-card__title">{{ hp.title }}</p>
+                      <p class="hotspots-card__price">
+                        {%- if hp.compare_at_price > hp.price -%}
+                          <span class="hotspots-card__price-sale">{{ hp.price | money }}</span>
+                          <s class="hotspots-card__price-compare">{{ hp.compare_at_price | money }}</s>
+                        {%- else -%}
+                          {{ hp.price | money }}
+                        {%- endif -%}
+                      </p>
+                    </div>
+                  </a>
+                {%- else -%}
+                  <div class="hotspots-card hotspots-card--placeholder" data-product-id="{{ hotspot_block.id }}">
+                    {%- if section.settings.sidebar_show_numbers -%}
+                      <span class="hotspots-card__number" aria-hidden="true">{{ idx }}</span>
+                    {%- endif -%}
+                    <div class="hotspots-card__image">
+                      {{ 'product-1' | placeholder_svg_tag: 'placeholder-svg' }}
+                    </div>
+                    <div class="hotspots-card__info">
+                      <p class="hotspots-card__title">{{ 'placeholders.product_title' | t }}</p>
+                    </div>
+                  </div>
+                {%- endif -%}
+              {%- endfor -%}
+            </div>
+          </aside>
+        {%- endif -%}
+      {%- endif -%}
     </div>
   </div>
 </div>
@@ -75,11 +143,158 @@
     height: 100%;
   }
 
+  /* Layout: image + sidebar grid */
+  .section-product-hotspots__layout {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--gap, 28px);
+    width: 100%;
+  }
+
+  @media screen and (min-width: 1024px) {
+    .section-product-hotspots__layout--right {
+      grid-template-columns: minmax(0, 1fr) minmax(280px, 380px);
+      align-items: start;
+    }
+
+    .section-product-hotspots__layout--left {
+      grid-template-columns: minmax(280px, 380px) minmax(0, 1fr);
+      align-items: start;
+    }
+
+    .section-product-hotspots__layout--left .section-product-hotspots__content {
+      order: 2;
+    }
+
+    .section-product-hotspots__layout--left .section-product-hotspots__sidebar {
+      order: 1;
+    }
+  }
+
   /* Image container */
   .section-product-hotspots__content {
     position: relative;
     aspect-ratio: var(--ratio, 21 / 9);
     overflow: hidden;
+    border-radius: var(--style-border-radius-popover, var(--border-radius-md, 12px));
+  }
+
+  /* Sidebar — product grid (Shop the Look style) */
+  .section-product-hotspots__sidebar {
+    width: 100%;
+  }
+
+  .section-product-hotspots__sidebar-grid {
+    display: grid;
+    grid-template-columns: repeat(var(--sidebar-columns, 2), minmax(0, 1fr));
+    gap: var(--sidebar-gap, 16px);
+  }
+
+  @media screen and (max-width: 749px) {
+    .section-product-hotspots__sidebar-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  .hotspots-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--padding-xs, 8px);
+    text-decoration: none;
+    color: inherit;
+    background: var(--color-background);
+    border-radius: var(--style-border-radius-popover, 12px);
+    padding: var(--padding-xs, 8px);
+    transition: transform 0.45s cubic-bezier(0.22, 0.61, 0.36, 1),
+      box-shadow 0.45s cubic-bezier(0.22, 0.61, 0.36, 1);
+  }
+
+  @media (any-pointer: fine) and (prefers-reduced-motion: no-preference) {
+    .hotspots-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 32px -16px rgb(var(--color-foreground-rgb) / 0.22);
+    }
+  }
+
+  .hotspots-card__number {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 24px;
+    height: 24px;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: var(--color-foreground);
+    color: var(--color-background);
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1;
+  }
+
+  .hotspots-card__image {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1;
+    overflow: hidden;
+    border-radius: calc(var(--style-border-radius-popover, 12px) - 4px);
+    background: rgb(var(--color-foreground-rgb) / 0.04);
+  }
+
+  .hotspots-card__image img,
+  .hotspots-card__image svg {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @media (any-pointer: fine) and (prefers-reduced-motion: no-preference) {
+    .hotspots-card:hover .hotspots-card__image img {
+      transform: scale(1.05);
+    }
+  }
+
+  .hotspots-card__info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 0 4px 4px;
+  }
+
+  .hotspots-card__title {
+    margin: 0;
+    font-family: var(--font-heading--family);
+    font-weight: var(--font-heading--weight);
+    font-size: 14px;
+    line-height: 1.3;
+    color: var(--color-foreground);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .hotspots-card__price {
+    margin: 0;
+    font-size: 13px;
+    color: var(--color-foreground);
+    opacity: 0.8;
+  }
+
+  .hotspots-card__price-sale {
+    color: var(--color-accent, var(--color-foreground));
+    font-weight: 600;
+    margin-right: 6px;
+  }
+
+  .hotspots-card__price-compare {
+    opacity: 0.5;
   }
 
   /* Hide hotspots without products on touch devices (tablets included) */
@@ -524,6 +739,55 @@
       ],
       "default": "to top",
       "visible_if": "{{ section.settings.toggle_overlay and section.settings.overlay_style == 'gradient' }}"
+    },
+    {
+      "type": "header",
+      "content": "Sidebar (products grid)"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_sidebar",
+      "label": "Show product grid sidebar",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "sidebar_position",
+      "label": "Sidebar position",
+      "options": [
+        { "value": "right", "label": "Right" },
+        { "value": "left",  "label": "Left" }
+      ],
+      "default": "right",
+      "visible_if": "{{ section.settings.show_sidebar == true }}"
+    },
+    {
+      "type": "range",
+      "id": "sidebar_columns",
+      "label": "Sidebar columns",
+      "min": 1,
+      "max": 3,
+      "step": 1,
+      "default": 2,
+      "visible_if": "{{ section.settings.show_sidebar == true }}"
+    },
+    {
+      "type": "range",
+      "id": "sidebar_gap",
+      "label": "Sidebar gap",
+      "min": 4,
+      "max": 40,
+      "step": 2,
+      "unit": "px",
+      "default": 16,
+      "visible_if": "{{ section.settings.show_sidebar == true }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "sidebar_show_numbers",
+      "label": "Show pin numbers on cards",
+      "default": true,
+      "visible_if": "{{ section.settings.show_sidebar == true }}"
     },
     {
       "type": "header",

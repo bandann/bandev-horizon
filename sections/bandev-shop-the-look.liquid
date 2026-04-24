@@ -2,6 +2,9 @@
   assign s = section.settings
   assign block_count = section.blocks.size
 
+  assign pin_blocks = section.blocks | where: 'type', 'bandev-shop-pin'
+  assign sidebar_blocks_size = block_count | minus: pin_blocks.size
+
   assign layout_class = 'bandev-shop bandev-shop--layout-' | append: s.layout
   assign header_class = 'bandev-shop__header bandev-shop__header--' | append: s.header_alignment
   assign media_class = 'bandev-shop__media bandev-shop__media--ratio-' | append: s.image_ratio | replace: '/', '-'
@@ -47,13 +50,19 @@
             {{ 'lifestyle-1' | placeholder_svg_tag: 'placeholder-svg' }}
           {%- endif -%}
 
-          {% content_for 'blocks' %}
+          {# Render only pin blocks overlaid on the image #}
+          {%- for block in section.blocks -%}
+            {%- if block.type == 'bandev-shop-pin' -%}
+              {% render block %}
+            {%- endif -%}
+          {%- endfor -%}
         </div>
       </div>
 
-      {%- if block_count > 0 -%}
+      {%- if pin_blocks.size > 0 or sidebar_blocks_size > 0 -%}
         <div class="bandev-shop__products">
-          {%- for block in section.blocks -%}
+          {# 1) Pin-derived product cards #}
+          {%- for block in pin_blocks -%}
             {%- assign p = block.settings.product -%}
             {%- assign idx = forloop.index -%}
             {%- if p != blank -%}
@@ -103,6 +112,19 @@
               </div>
             {%- endif -%}
           {%- endfor -%}
+
+          {# 2) Free-form blocks (product cards, text, button, image) #}
+          {%- if sidebar_blocks_size > 0 -%}
+            <div class="bandev-shop__extra-blocks">
+              {%- for block in section.blocks -%}
+                {%- unless block.type == 'bandev-shop-pin' -%}
+                  <div class="bandev-shop__extra-block bandev-shop__extra-block--{{ block.type }}" {{ block.shopify_attributes }}>
+                    {% render block %}
+                  </div>
+                {%- endunless -%}
+              {%- endfor -%}
+            </div>
+          {%- endif -%}
         </div>
       {%- endif -%}
     </div>
@@ -118,35 +140,36 @@
     "groups": ["header", "footer"]
   },
   "blocks": [
-    { "type": "_bandev-shop-pin", "name": "Pin" }
+    { "type": "@theme" },
+    { "type": "@app" }
   ],
-  "max_blocks": 12,
+  "max_blocks": 24,
   "settings": [
     {
       "type": "header",
-      "content": "Image"
+      "content": "t:content.image"
     },
     {
       "type": "image_picker",
       "id": "image",
-      "label": "Lifestyle image"
+      "label": "t:settings.image"
     },
     {
       "type": "select",
       "id": "image_ratio",
-      "label": "Image aspect ratio",
+      "label": "t:settings.image_ratio",
       "options": [
-        { "value": "16/9",  "label": "16:9 (wide)" },
-        { "value": "21/9",  "label": "21:9 (cinematic)" },
-        { "value": "4/3",   "label": "4:3 (photo)" },
-        { "value": "1/1",   "label": "1:1 (square)" },
-        { "value": "3/4",   "label": "3:4 (portrait)" }
+        { "value": "16/9",  "label": "16:9" },
+        { "value": "21/9",  "label": "21:9" },
+        { "value": "4/3",   "label": "t:options.landscape" },
+        { "value": "1/1",   "label": "t:options.square" },
+        { "value": "3/4",   "label": "t:options.portrait" }
       ],
       "default": "4/3"
     },
     {
       "type": "header",
-      "content": "Header"
+      "content": "t:content.layout"
     },
     {
       "type": "text",
@@ -157,13 +180,13 @@
     {
       "type": "text",
       "id": "title",
-      "label": "Title",
+      "label": "t:settings.title",
       "default": "Get inspired"
     },
     {
       "type": "select",
       "id": "heading_tag",
-      "label": "Title tag",
+      "label": "t:settings.title",
       "options": [
         { "value": "h2", "label": "H2" },
         { "value": "h3", "label": "H3" }
@@ -173,54 +196,54 @@
     {
       "type": "richtext",
       "id": "description",
-      "label": "Description",
+      "label": "t:names.description",
       "default": "<p>Click on each pin to discover the products featured in this look.</p>"
     },
     {
       "type": "select",
       "id": "header_alignment",
-      "label": "Header alignment",
+      "label": "t:settings.alignment",
       "options": [
-        { "value": "left",   "label": "Left" },
-        { "value": "center", "label": "Center" },
-        { "value": "right",  "label": "Right" }
+        { "value": "left",   "label": "t:options.left" },
+        { "value": "center", "label": "t:options.center" },
+        { "value": "right",  "label": "t:options.right" }
       ],
       "default": "center"
     },
     {
       "type": "header",
-      "content": "Layout"
+      "content": "t:content.section_layout"
     },
     {
       "type": "select",
       "id": "section_width",
-      "label": "Section width",
+      "label": "t:settings.section_width",
       "options": [
-        { "value": "page-width", "label": "Page width" },
-        { "value": "full-width", "label": "Full width" }
+        { "value": "page-width", "label": "t:options.page" },
+        { "value": "full-width", "label": "t:options.full" }
       ],
       "default": "page-width"
     },
     {
       "type": "select",
       "id": "layout",
-      "label": "Products list position (desktop)",
+      "label": "t:settings.alignment",
       "options": [
-        { "value": "right",  "label": "Right of image" },
-        { "value": "left",   "label": "Left of image" },
-        { "value": "bottom", "label": "Below image" }
+        { "value": "right",  "label": "t:options.right" },
+        { "value": "left",   "label": "t:options.left" },
+        { "value": "bottom", "label": "t:options.bottom" }
       ],
       "default": "right"
     },
     {
       "type": "color_scheme",
       "id": "color_scheme",
-      "label": "Color scheme",
+      "label": "t:settings.color_scheme",
       "default": "scheme-1"
     },
     {
       "type": "header",
-      "content": "Products list"
+      "content": "t:settings.products"
     },
     {
       "type": "checkbox",
@@ -237,18 +260,18 @@
     {
       "type": "text",
       "id": "cta_label",
-      "label": "Shop label",
+      "label": "t:settings.label",
       "default": "Shop",
       "visible_if": "{{ section.settings.show_cta == true }}"
     },
     {
       "type": "header",
-      "content": "Padding"
+      "content": "t:content.padding"
     },
     {
       "type": "range",
       "id": "padding-block-start",
-      "label": "Top padding",
+      "label": "t:settings.top",
       "min": 0,
       "max": 120,
       "step": 4,
@@ -258,7 +281,7 @@
     {
       "type": "range",
       "id": "padding-block-end",
-      "label": "Bottom padding",
+      "label": "t:settings.bottom",
       "min": 0,
       "max": 120,
       "step": 4,
@@ -269,7 +292,7 @@
   "presets": [
     {
       "name": "Bandev shop the look",
-      "category": "Banners",
+      "category": "t:categories.products",
       "settings": {
         "image_ratio": "4/3",
         "eyebrow": "Shop the look",
@@ -283,9 +306,9 @@
         "show_cta": true
       },
       "blocks": {
-        "pin_1": { "type": "_bandev-shop-pin" },
-        "pin_2": { "type": "_bandev-shop-pin" },
-        "pin_3": { "type": "_bandev-shop-pin" }
+        "pin_1": { "type": "bandev-shop-pin" },
+        "pin_2": { "type": "bandev-shop-pin" },
+        "pin_3": { "type": "bandev-shop-pin" }
       },
       "block_order": ["pin_1", "pin_2", "pin_3"]
     }

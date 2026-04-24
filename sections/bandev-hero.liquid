@@ -82,32 +82,32 @@
     "groups": ["header", "footer"]
   },
   "blocks": [
-    { "type": "_bandev-hero-slide", "name": "Slide" }
+    { "type": "_bandev-hero-slide", "name": "t:names.slide" }
   ],
   "settings": [
     {
       "type": "header",
-      "content": "Layout"
+      "content": "t:content.layout"
     },
     {
       "type": "select",
       "id": "section_width",
-      "label": "Section width",
+      "label": "t:settings.section_width",
       "options": [
-        { "value": "page-width", "label": "Page width" },
-        { "value": "full-width", "label": "Full width" }
+        { "value": "page-width", "label": "t:options.page" },
+        { "value": "full-width", "label": "t:options.full" }
       ],
       "default": "full-width"
     },
     {
       "type": "select",
       "id": "height",
-      "label": "Height",
+      "label": "t:settings.height",
       "options": [
-        { "value": "small", "label": "Small (360px)" },
-        { "value": "medium", "label": "Medium (480px)" },
-        { "value": "large", "label": "Large (640px)" },
-        { "value": "full", "label": "Full screen (100vh)" }
+        { "value": "small",  "label": "t:options.small" },
+        { "value": "medium", "label": "t:options.medium" },
+        { "value": "large",  "label": "t:options.large" },
+        { "value": "full",   "label": "t:options.full" }
       ],
       "default": "large"
     },
@@ -120,17 +120,17 @@
     {
       "type": "color_scheme",
       "id": "color_scheme",
-      "label": "Section color scheme",
+      "label": "t:settings.color_scheme",
       "default": "scheme-1"
     },
     {
       "type": "header",
-      "content": "Navigation"
+      "content": "t:content.navigation"
     },
     {
       "type": "checkbox",
       "id": "show_navigation",
-      "label": "Show navigation controls",
+      "label": "t:content.navigation",
       "default": true
     },
     {
@@ -150,13 +150,13 @@
     {
       "type": "checkbox",
       "id": "autoplay",
-      "label": "Auto-rotate slides",
+      "label": "t:settings.autoplay",
       "default": false
     },
     {
       "type": "range",
       "id": "autoplay_speed",
-      "label": "Auto-rotate speed",
+      "label": "t:settings.speed",
       "min": 3,
       "max": 10,
       "step": 1,
@@ -166,12 +166,12 @@
     },
     {
       "type": "header",
-      "content": "Padding"
+      "content": "t:content.padding"
     },
     {
       "type": "range",
       "id": "padding-block-start",
-      "label": "Top padding",
+      "label": "t:settings.top",
       "min": 0,
       "max": 120,
       "step": 4,
@@ -181,7 +181,7 @@
     {
       "type": "range",
       "id": "padding-block-end",
-      "label": "Bottom padding",
+      "label": "t:settings.bottom",
       "min": 0,
       "max": 120,
       "step": 4,
@@ -192,7 +192,7 @@
   "presets": [
     {
       "name": "Bandev hero",
-      "category": "Banners",
+      "category": "t:categories.banners",
       "settings": {
         "section_width": "full-width",
         "height": "large",
